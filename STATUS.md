@@ -1,1 +1,1 @@
-placeholder for landing-page pitch mockups
+Public PNG hosting for Megan. No product code.
