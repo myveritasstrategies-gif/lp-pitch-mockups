@@ -1,0 +1,41 @@
+name: Decode mockup PNGs
+on:
+  push:
+    paths:
+      - "*.b64"
+      - "chunks/**"
+      - ".github/workflows/decode-pngs.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Concatenate chunks and write PNGs
+        run: |
+          set -euo pipefail
+          for prefix in \
+            01-create-flow-wizard.png \
+            02-published-landing.png \
+            03-current-vs-upgraded.png \
+            04-execute-generate.png
+          do
+            if [ -f "${prefix}.b64" ]; then
+              tr -d '\n' < "${prefix}.b64" | base64 -d > "${prefix}"
+              file "${prefix}"
+            elif compgen -G "chunks/${prefix}.b64.*" > /dev/null; then
+              cat chunks/${prefix}.b64.* | tr -d '\n' | base64 -d > "${prefix}"
+              file "${prefix}"
+            fi
+          done
+          git config user.email "team@veritasstrategies.io"
+          git config user.name "Veritas"
+          git add *.png
+          if git diff --cached --quiet; then
+            echo "No PNG changes"
+            exit 0
+          fi
+          git commit -m "Decode landing-page pitch mockup PNGs"
+          git push
