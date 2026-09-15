@@ -15,29 +15,14 @@ jobs:
         run: |
           set -euo pipefail
           BIN=5f895a5e9b743600
-          for f in \
-            01-create-flow-wizard.png \
-            02-published-landing.png \
-            03-current-vs-upgraded.png \
-            04-execute-generate.png
-          do
+          for f in 01-create-flow-wizard.png 02-published-landing.png 03-current-vs-upgraded.png 04-execute-generate.png; do
             echo "Downloading $f"
             curl -fsSL --retry 5 --retry-delay 2 -o "$f" "https://filebin.net/${BIN}/$f"
             file "$f"
-            python3 - "$f" <<'PY'
-import sys, pathlib
-p = pathlib.Path(sys.argv[1])
-data = p.read_bytes()
-assert data[:8] == b"\x89PNG\r\n\x1a\n", (p, data[:16])
-print(p.name, "png ok", len(data), "bytes")
-PY
+            python3 -c "import pathlib; p=pathlib.Path('$f'); d=p.read_bytes(); assert d[:8]==bytes.fromhex('89504e470d0a1a0a'), d[:16]; print(p.name, 'png ok', len(d))"
           done
           git config user.email "team@veritasstrategies.io"
           git config user.name "Veritas"
-          git add *.png
-          if git diff --cached --quiet; then
-            echo "No PNG changes"
-            exit 0
-          fi
+          git add 01-create-flow-wizard.png 02-published-landing.png 03-current-vs-upgraded.png 04-execute-generate.png
           git commit -m "Add landing-page pitch mockup PNGs"
           git push
